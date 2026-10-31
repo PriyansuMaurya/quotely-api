@@ -1,0 +1,26 @@
+# Render blueprint for the Quotely API.
+#
+# Deploy with: Render Dashboard -> New -> Blueprint -> point at this repository.
+#
+# The build installs uv itself, because Render's native Python runtime ships pip
+# but not uv. `--frozen` makes the build fail if uv.lock disagrees with
+# pyproject.toml, so a deploy can never silently resolve different versions than
+# the ones that passed CI. `--no-dev` keeps pytest and httpx2 out of production.
+services:
+  - type: web
+    name: quotely-api
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: uv run --no-dev uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.13
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
