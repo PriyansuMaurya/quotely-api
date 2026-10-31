@@ -22,6 +22,28 @@ uv run uvicorn app.main:app --reload     # serve on http://127.0.0.1:8000
 
 Then open <http://127.0.0.1:8000/docs>.
 
+## Frontend
+
+A SvelteKit client lives in [`frontend/`](frontend/). It shows one random quote
+with its author and refreshes on demand.
+
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173
+```
+
+It calls this API, so the API must allow the frontend's origin. Locally the
+defaults already cover `localhost:5173` (dev) and `localhost:4173` (preview). For
+a deployed frontend, set:
+
+```
+CORS_ALLOWED_ORIGINS=https://your-app.vercel.app
+```
+
+on the Render service — comma-separate multiple origins. See
+[`frontend/README.md`](frontend/README.md) for deployment steps.
+
 ## Endpoints
 
 | Method | Path                        | Description                                     |
@@ -150,6 +172,7 @@ app/
 data/quotes.json         # committed snapshot of the Quotely catalogue
 scripts/sync_quotes.py   # regenerates that snapshot
 tests/                   # pytest suite
+frontend/                # SvelteKit client (see frontend/README.md)
 ```
 
 ## Data: the Quotely library and the snapshot
