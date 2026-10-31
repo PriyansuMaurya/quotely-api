@@ -35,7 +35,14 @@ class Settings:
 
 # Origins used when CORS_ALLOWED_ORIGINS is unset, so the bundled frontend can call
 # a local API out of the box. Deployments should set the variable explicitly.
-DEV_CORS_ORIGINS = ("http://localhost:5173", "http://127.0.0.1:5173")
+DEV_CORS_ORIGINS = (
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # `npm run preview` serves the production build on 4173; without these the
+    # documented preview flow is blocked by the browser's CORS check.
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+)
 
 
 def _origins_from_env() -> tuple[str, ...]:

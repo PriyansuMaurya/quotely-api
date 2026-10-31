@@ -7,9 +7,10 @@ correctly.
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
-from app.config import settings
+from app.config import DEV_CORS_ORIGINS, settings
 
 ALLOWED = settings.cors_allowed_origins[0]
 DISALLOWED = "https://evil.example.com"
@@ -20,6 +21,14 @@ def test_allowed_origin_receives_cors_header(client: TestClient, api_prefix: str
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == ALLOWED
+
+
+@pytest.mark.parametrize("origin", DEV_CORS_ORIGINS)
+def test_every_dev_origin_is_allowed(client: TestClient, api_prefix: str, origin: str) -> None:
+    """Both the dev server and `npm run preview` must be usable locally."""
+    response = client.get(f"{api_prefix}/quotes/random", headers={"Origin": origin})
+
+    assert response.headers["access-control-allow-origin"] == origin
 
 
 def test_disallowed_origin_receives_no_cors_header(client: TestClient, api_prefix: str) -> None:
