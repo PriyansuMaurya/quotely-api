@@ -237,9 +237,37 @@ dependencies out of the running image.
 To deploy: Render Dashboard → **New** → **Blueprint** → select this repository.
 Change the region or plan in `render.yaml` if needed.
 
-**The free tier sleeps after a period of inactivity.** The first request after
-idling takes several seconds while the instance boots — that is the plan, not a
+**The free tier sleeps after 15 minutes of inactivity.** The first request after
+idling takes up to a minute while the instance boots — that is the plan, not a
 defect. Upgrade the plan if that latency matters.
+
+### Keeping the free tier awake
+
+[`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml) pings
+`/health` every 10 minutes so the instance never reaches the 15-minute idle
+trigger. Pinging `/health` rather than a quotes endpoint keeps the wake-up cheap:
+it touches no data files.
+
+The job is not fire-and-forget. It retries through the 502/503 a waking container
+returns, allows 90 seconds for a cold start, and fails if the body's `status` is
+anything but `ok` — a 200 that reports a broken service is still a broken
+service. Run it on demand from **Actions → Keep-alive → Run workflow**, or point
+it at another host by setting the `API_BASE_URL` repository variable.
+
+Two limits of using GitHub for this, both worth knowing before relying on it:
+
+- **Scheduled runs are best-effort.** Under load GitHub can start a `cron` job
+  several minutes late, and the 10-minute interval is tuned to absorb that. If a
+  run is ever delayed past 15 minutes, the next request pays a cold start.
+- **GitHub disables `schedule` triggers on public repositories after 60 days
+  without repository activity**, which would silently stop the pings. For a
+  guarantee rather than a best effort, use an external monitor (UptimeRobot's
+  free plan checks every 5 minutes) pointed at
+  `https://<service>.onrender.com/health`.
+
+Keeping one service awake around the clock uses roughly 730 of the 750 free
+instance hours Render grants per month, leaving little headroom for a second
+free service on the same account.
 
 ### Anywhere else
 
