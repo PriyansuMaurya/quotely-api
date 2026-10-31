@@ -29,7 +29,20 @@ class Settings:
     data_file: Path
     default_page_size: int
     max_page_size: int
+    cors_allowed_origins: tuple[str, ...]
     api_prefix: str = "/api/v1"
+
+
+# Origins used when CORS_ALLOWED_ORIGINS is unset, so the bundled frontend can call
+# a local API out of the box. Deployments should set the variable explicitly.
+DEV_CORS_ORIGINS = ("http://localhost:5173", "http://127.0.0.1:5173")
+
+
+def _origins_from_env() -> tuple[str, ...]:
+    raw = os.getenv("CORS_ALLOWED_ORIGINS")
+    if raw is None:
+        return DEV_CORS_ORIGINS
+    return tuple(origin.strip() for origin in raw.split(",") if origin.strip())
 
 
 def _int_from_env(name: str, default: int) -> int:
@@ -52,6 +65,7 @@ def load_settings() -> Settings:
         data_file=Path(os.getenv("QUOTES_DATA_FILE", str(DEFAULT_DATA_FILE))),
         default_page_size=_int_from_env("DEFAULT_PAGE_SIZE", 20),
         max_page_size=_int_from_env("MAX_PAGE_SIZE", 100),
+        cors_allowed_origins=_origins_from_env(),
     )
 
 

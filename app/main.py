@@ -16,6 +16,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app import quote_service
 from app.config import settings
@@ -78,6 +79,17 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(RequestIdMiddleware)
+    # Added last so CORS is the outermost layer: preflight OPTIONS requests are
+    # answered before they can reach routing and 405 on a GET-only route.
+    if settings.cors_allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(settings.cors_allowed_origins),
+            allow_methods=["GET", "HEAD", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["X-Request-ID"],
+            max_age=600,
+        )
     register_exception_handlers(app)
 
     app.include_router(quotes.router, prefix=settings.api_prefix)
