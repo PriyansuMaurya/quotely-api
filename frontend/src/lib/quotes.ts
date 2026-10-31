@@ -17,7 +17,8 @@ export interface Quote {
 export type QuoteErrorKind = 'network' | 'timeout' | 'http' | 'payload';
 
 const MESSAGES: Record<QuoteErrorKind, string> = {
-	network: "We couldn't reach the quotes service. Check your connection and try again.",
+	network:
+		"We couldn't reach the quotes service. It may be offline, or it may not accept requests from this site.",
 	timeout: 'The quotes service took too long to respond. Please try again.',
 	http: 'The quotes service returned an error.',
 	payload: 'The quotes service sent a response we could not read.'

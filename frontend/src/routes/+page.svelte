@@ -117,9 +117,6 @@
 
 			<div class="mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
 				<RefreshButton {isLoading} onRefresh={loadQuote} />
-				{#if status === 'error'}
-					<span class="text-xs text-slate-500">Automatic retry is disabled for privacy.</span>
-				{/if}
 			</div>
 		</section>
 

@@ -57,6 +57,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             "environment": settings.environment,
             "catalog_size": quote_service.catalog_size(),
             "data_file": str(settings.data_file),
+            # Logged because a wrong allowlist is invisible from the API side: the
+            # browser just reports a failed request, with no clue that CORS is why.
+            "cors_allowed_origins": list(settings.cors_allowed_origins),
         },
     )
     yield

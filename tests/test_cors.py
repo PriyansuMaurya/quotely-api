@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import DEV_CORS_ORIGINS, settings
+from app.config import DEV_CORS_ORIGINS, _origins_from_env, settings
 
 ALLOWED = settings.cors_allowed_origins[0]
 DISALLOWED = "https://evil.example.com"
@@ -64,3 +64,25 @@ def test_health_is_reachable_cross_origin(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == ALLOWED
+
+
+def test_origins_default_when_the_variable_is_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CORS_ALLOWED_ORIGINS", raising=False)
+
+    assert _origins_from_env() == DEV_CORS_ORIGINS
+
+
+def test_origins_are_parsed_and_normalised(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Whitespace and trailing slashes must not silently stop an origin matching."""
+    monkeypatch.setenv(
+        "CORS_ALLOWED_ORIGINS",
+        " https://a.example.com/ , https://b.example.com ,, ",
+    )
+
+    assert _origins_from_env() == ("https://a.example.com", "https://b.example.com")
+
+
+def test_empty_value_means_no_cross_origin_access(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "")
+
+    assert _origins_from_env() == ()

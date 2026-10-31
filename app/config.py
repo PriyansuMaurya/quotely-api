@@ -49,7 +49,11 @@ def _origins_from_env() -> tuple[str, ...]:
     raw = os.getenv("CORS_ALLOWED_ORIGINS")
     if raw is None:
         return DEV_CORS_ORIGINS
-    return tuple(origin.strip() for origin in raw.split(",") if origin.strip())
+    # Browsers never send a trailing slash in the Origin header, so an origin
+    # configured as "https://app.example.com/" would silently match nothing.
+    return tuple(
+        origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()
+    )
 
 
 def _int_from_env(name: str, default: int) -> int:
